@@ -17,7 +17,7 @@ Commands
 
 Preferably, you can download it by cloning the [Git](https://github.com/5vver/Temperature_App) repository:
 
-    https://github.com/5vver/Temperature_App.git
+    git clone https://github.com/5vver/Temperature_App.git
 
 DB_Commands
 ----
