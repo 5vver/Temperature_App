@@ -1,8 +1,5 @@
-import {useState, useEffect, useContext} from "react";
-import { NextUIProvider, createTheme, useTheme } from '@nextui-org/react';
+import { NextUIProvider, createTheme } from '@nextui-org/react';
 
-import chroma from 'chroma-js';
-import { styled } from '@stitches/react';
 
 import './App.css'
 
