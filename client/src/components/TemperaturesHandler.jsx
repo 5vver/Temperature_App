@@ -1,26 +1,30 @@
 import {useEffect, useRef, useState} from 'react';
 
+import {Button, Grid, StyledGridItem, Text} from '@nextui-org/react';
+import Cooler from "./Cooler.jsx";
+import Heater from "./Heater.jsx";
+
 const TemperaturesHandler = () => {
-  //
   const [tempMsg, setTempMsg] = useState('')
-  // Температура
   const [temp, setTemp] = useState(null)
 
-  // Влажность
   const [hum, setHum] = useState(null)
+
+  const [isCoolerRotating, setIsCoolerRotating] = useState(false)
+  const [isHeaterPulsing, setIsHeaterPulsing] = useState(false)
 
   const tempRef = useRef(temp);
   tempRef.current = temp;
 
   useEffect(() => {
     const fetchTemperature = async () => {
-      const response = await fetch('/api/temperature/1');  // replace 1 with the correct ID
+      const response = await fetch('/api/temperature/1');
       const data = await response.json();
       setTemp(data.temp);
     }
 
     const fetchHumidity = async () => {
-      const response = await fetch('/api/humidity/1');  // replace 1 with the correct ID
+      const response = await fetch('/api/humidity/1');
       const data = await response.json();
       setHum(data.hum);
     }
@@ -42,11 +46,11 @@ const TemperaturesHandler = () => {
   }
 
   const increaseTemp = () => {
-    updateTemperature(temp + 5);
+    temp < 60 && updateTemperature(temp + 5)
   }
 
   const decreaseTemp = () => {
-    updateTemperature(temp - 5);
+    temp > 0 && updateTemperature(temp - 5)
   }
 
   // State depending on temp change
@@ -61,12 +65,16 @@ const TemperaturesHandler = () => {
 
   const startVentilation = () => {
     if (temp > 25) {
+
       const interval = setInterval(() => {
-        tempRef.current > 25 ? (
+        if (tempRef.current > 25) {
+          setIsCoolerRotating(true)
           setTemp(prevTemp => prevTemp - 1)
-        ) : (
+        }
+        else {
           clearInterval(interval)
-        )
+          setIsCoolerRotating(false)
+        }
       }, 1000);
 
       return () => {
@@ -80,11 +88,14 @@ const TemperaturesHandler = () => {
   const startHeater = () => {
     if (temp < 20) {
       const interval = setInterval(() => {
-        tempRef.current < 20 ? (
+        if (tempRef.current < 20) {
+          setIsHeaterPulsing(true)
           setTemp(prevTemp => prevTemp + 1)
-        ) : (
+        }
+        else {
           clearInterval(interval)
-        )
+          setIsHeaterPulsing(false)
+        }
       }, 1000);
 
       return () => {
@@ -96,35 +107,135 @@ const TemperaturesHandler = () => {
   }
 
   return (
-    <div
-      style={{ right: '50%',
-        bottom: "50%",
-        width: "100%",
-        transform: "translate(50%,20%)",
-        position: "absolute"}}>
-      <h1>Управление</h1>
+    <div>
+      <Text
+        h1
+        css={{
+          textGradient: "45deg, #000000 -20%, #434343 90%",
+        }}
+        weight="bold"
+      >
+        Управление
+      </Text>
       <div>
-        <h2>Температура:</h2>
-        <p style={{textAlign: "center"}}>Значение: {temp} </p>
+        <Text
+          h2
+          css={{
+            textGradient: "45deg, #000000 -20%, #434343 100%",
+          }}
+          weight="bold"
+        >
+          Температура:
+        </Text>
+        <Text
+          h2
+          css={temp >= 20 && temp <= 25 ?
+            ({
+              textGradient: "45deg, #000000 -20%, #434343 80%",
+            }) : temp > 25 ?
+              ({
+                textGradient: "45deg, #fd1d1d -20%, red 80%",
+              }) :
+              ({
+                textGradient: "45deg, white -20%, $blue600 80%",
+              })
+          }
+          weight="bold"
+        >
+          {temp}
+        </Text>
       </div>
-      <h2>Влажность:</h2>
-      <div>
-        <p style={{textAlign: "center"}}>Значение: {hum} </p>
-      </div>
-      <h2>Состояние:</h2>
-      <p>{tempMsg}</p>
+      <h2></h2>
+      <Text
+        h2
+        css={{
+          textGradient: "45deg, #000000 -20%, #434343 90%",
+        }}
+        weight="bold"
+      >
+        Влажность:
+      </Text>
+      <Text
+        h2
+        css={{
+          textGradient: "45deg, #000000 -20%, #434343 80%",
+        }}
+        weight="bold"
+      >
+        {hum}
+      </Text>
+      <Text
+        h2
+        css={{
+          textGradient: "45deg, #000000 -20%, #434343 80%",
+        }}
+        weight="bold"
+      >
+        Состояние:
+      </Text>
+      <Text
+        h3
+        css={temp >= 20 && temp <= 25 ?
+          ({
+            textGradient: "45deg, #000000 -20%, #434343 80%",
+          }) : temp > 25 ?
+          ({
+            textGradient: "45deg, #fd1d1d -20%, red 80%",
+          }) :
+          ({
+            textGradient: "45deg, white -20%, $blue600 80%",
+          })
+        }
+        weight="bold"
+      >
+        {tempMsg}
+      </Text>
+      <Grid.Container gap={4} justify="center">
+        <Grid>
+          <Cooler isRotating={isCoolerRotating}/>
+        </Grid>
+        <Grid>
+          <Heater isHeating={isHeaterPulsing} />
+        </Grid>
+      </Grid.Container>
+
       <hr style={{}}/>
-      <h2>Управление температурой:</h2>
-      <div style={{justifyContent: "space-between"}}>
-        <button onClick={decreaseTemp}>Обновить запись температуры - 5</button>
-        <button onClick={increaseTemp}>Обновить запись температуры + 5</button>
-      </div>
-      <hr/>
-      <h2>Управление вентиляцией и обогревом:</h2>
-      <div>
-        <button onClick={startVentilation}>Включить вентиляцию</button>
-        <button onClick={startHeater}>Включить обогреватель</button>
-      </div>
+      <Grid.Container gap={2} justify={'center'}>
+        <Grid xs={6}>
+          <Text
+            h3
+            css={{
+              textGradient: "45deg, #000000 -20%, #434343 80%",
+            }}
+            weight="bold"
+          >
+            Управление температурой:
+          </Text>
+        </Grid>
+        <Grid xs={4}>
+          <Text
+            h3
+            css={{
+              textGradient: "45deg, #000000 -20%, #434343 80%",
+            }}
+            weight="bold"
+          >
+            Управление вентиляцией и обогревом:
+          </Text>
+        </Grid>
+        <Grid>
+          <Button bordered auto ghost color={'gradient'} size={'md'} onClick={decreaseTemp}>Понизить температуру</Button>
+        </Grid>
+        <Grid xs={4.5}>
+          <Button bordered auto ghost color={'gradient'} size={'md'} onClick={increaseTemp}>Повысить температуру</Button>
+        </Grid>
+        <Grid>
+          <Button color={'gradient'} auto ghost size={'md'} onClick={startVentilation}>Включить вентиляцию</Button>
+        </Grid>
+        <Grid>
+          <Button color={'gradient'} auto ghost size={'md'} onClick={startHeater}>Включить обогреватель</Button>
+        </Grid>
+      </Grid.Container>
     </div>
   )
 }
